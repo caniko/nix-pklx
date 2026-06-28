@@ -16,6 +16,10 @@
       inputs.flake-utils.follows = "flake-utils";
       inputs.rust-overlay.follows = "rust-overlay";
     };
+    plinth = {
+      url = "git+https://codeberg.org/caniko/plinth.git";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -26,6 +30,7 @@
       flake-utils,
       rust-overlay,
       rs-harbor,
+      plinth,
       ...
     }:
     let
@@ -41,7 +46,21 @@
       };
     in
     {
-      lib = import ./lib { inherit (nixpkgs) lib; };
+      lib = forSystems (system: import ./lib {
+        inherit (nixpkgs) lib;
+        pkgs = pkgsFor system;
+        pklx = self.packages.${system}.pklx;
+      });
+
+      apps = forSystems (system: {
+        eval = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.pklx;
+        };
+        default = self.apps.${system}.eval;
+        deploy-pages = plinth.lib.${system}.mkDeployPagesApp {
+          domain = "nix-pklx.tartanoglu.com";
+        };
+      });
 
       packages = forSystems (system:
         let

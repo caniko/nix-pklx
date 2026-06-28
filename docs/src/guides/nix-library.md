@@ -1,10 +1,10 @@
 # Nix Library
 
-nix-pklx provides a pure Nix library exposed as `nix-pklx.lib.<system>`.
+nix-pklx provides a per-system Nix library exposed as `nix-pklx.lib.<system>`.
 
 ## `importPkl`
 
-Evaluate a `.pkl` file and import it as a Nix value:
+Evaluate a `.pkl` file and import it as a Nix value at build time:
 
 ```nix
 { pkgs, nix-pklx, ... }:
@@ -15,6 +15,8 @@ in {
   services.my-service.hosts = hosts;
 }
 ```
+
+The `.pkl` file is evaluated in a derivation (`pkgs.runCommandLocal`) using the `pklx` binary, producing a Nix expression that is then `import`ed.
 
 ## `toPkl`
 

@@ -31,7 +31,7 @@ Output:
 
 ```nix
 { config, pkgs, ... }: {
-{ host = "example.com"; port = 443; tls = true; }
+  host = "example.com"; port = 443; tls = true;
 }
 ```
 
@@ -41,8 +41,8 @@ Output:
 # configuration.nix
 { pkgs, nix-pklx, ... }:
 let
-  inherit (nix-pklx.lib.${pkgs.system}) importPkl;
+  pklxLib = nix-pklx.lib.${pkgs.stdenv.hostPlatform.system};
 in {
-  imports = [ (importPkl ./config.pkl) ];
+  imports = [ (pklxLib.importPkl ./config.pkl) ];
 }
 ```

@@ -50,7 +50,13 @@ async fn main() -> miette::Result<()> {
             let nix = pklx::cli::eval_pkl(&file).await?;
 
             let result = if module {
-                format!("{{ config, pkgs, ... }}: {{\n{}\n}}", nix)
+                let inner = nix.trim();
+                let inner = if inner.starts_with('{') && inner.ends_with('}') && inner.len() >= 2 {
+                    inner[1..inner.len() - 1].trim()
+                } else {
+                    inner
+                };
+                format!("{{ config, pkgs, ... }}: {{\n  {}\n}}", inner)
             } else {
                 nix
             };
