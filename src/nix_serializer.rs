@@ -134,8 +134,8 @@ fn escape_nix_quoted_key(k: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
     use indexmap::IndexMap;
+    use std::sync::Arc;
 
     #[test]
     fn test_null() {
@@ -199,10 +199,7 @@ mod tests {
     #[test]
     fn test_empty_object() {
         let map: IndexMap<String, Value> = IndexMap::new();
-        assert_eq!(
-            pkl_value_to_nix(&Value::Object(Arc::new(map), None)),
-            "{ }"
-        );
+        assert_eq!(pkl_value_to_nix(&Value::Object(Arc::new(map), None)), "{ }");
     }
 
     #[test]
@@ -220,10 +217,7 @@ mod tests {
         let mut inner = IndexMap::new();
         inner.insert("x".into(), Value::Int(1));
         let mut outer = IndexMap::new();
-        outer.insert(
-            "inner".into(),
-            Value::Object(Arc::new(inner), None),
-        );
+        outer.insert("inner".into(), Value::Object(Arc::new(inner), None));
         let result = pkl_value_to_nix(&Value::Object(Arc::new(outer), None));
         assert!(result.contains("inner = {"));
         assert!(result.contains("x = 1"));

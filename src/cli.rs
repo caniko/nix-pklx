@@ -10,10 +10,7 @@ pub async fn eval_pkl(path: &Path) -> miette::Result<String> {
     }
 
     let mut evaluator = pklr::Evaluator::new();
-    evaluator.set_base_path(
-        path.parent()
-            .unwrap_or_else(|| Path::new(".")),
-    );
+    evaluator.set_base_path(path.parent().unwrap_or_else(|| Path::new(".")));
 
     let value = evaluator
         .eval_file_pub(path)
@@ -27,8 +24,7 @@ pub async fn eval_pkl(path: &Path) -> miette::Result<String> {
 
 /// Analyze local import dependencies of a .pkl file.
 pub fn analyze_pkl_imports(path: &Path) -> miette::Result<Vec<std::path::PathBuf>> {
-    pklr::analyze_imports(path)
-        .map_err(|e| miette::miette!("Failed to analyze imports: {}", e))
+    pklr::analyze_imports(path).map_err(|e| miette::miette!("Failed to analyze imports: {}", e))
 }
 
 /// Convert a Nix expression string to Pkl syntax.

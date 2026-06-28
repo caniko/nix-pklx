@@ -42,7 +42,11 @@ async fn main() -> miette::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Command::Eval { file, module, output } => {
+        Command::Eval {
+            file,
+            module,
+            output,
+        } => {
             let nix = pklx::cli::eval_pkl(&file).await?;
 
             let result = if module {
