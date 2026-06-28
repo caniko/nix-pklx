@@ -12,7 +12,7 @@ concurrency:
 
 jobs:
   test:
-    runs-on: medium@actions-tiny.aburayama.m.codeberg.org
+    runs-on: codeberg-medium
     env:
       NIX_CONFIG: "experimental-features = nix-command flakes"
       XDG_CACHE_HOME: "/tmp/.cache"

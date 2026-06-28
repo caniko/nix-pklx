@@ -1,4 +1,4 @@
 [ci]
 runtime = "nix"
-runner = "medium"
+runner = "codeberg-medium"
 with_docs = true
