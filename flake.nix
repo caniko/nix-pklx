@@ -89,7 +89,11 @@
           };
           pklx = self.packages.${system}.default;
           inherit docs;
-          site = docs;
+          site = pkgs.runCommand "nix-pklx-site" {} ''
+            mkdir -p $out
+            cp -rL --no-preserve=mode ${docs}/. $out/
+            printf '%s\n' "nix-pklx.tartanoglu.com" > $out/.domains
+          ';
         }
       );
 
