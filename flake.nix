@@ -47,6 +47,19 @@
         let
           pkgs = pkgsFor system;
           craneLib = crane.mkLib pkgs;
+
+          docs = pkgs.stdenv.mkDerivation {
+            pname = "nix-pklx-docs";
+            version = "0.1.0";
+            src = ./docs;
+            nativeBuildInputs = [pkgs.mdbook];
+            buildPhase = ''
+              mdbook build "$src" -d "$TMPDIR/book"
+            '';
+            installPhase = ''
+              cp -r "$TMPDIR/book" "$out"
+            '';
+          };
         in {
           default = craneLib.buildPackage {
             pname = "pklx";
@@ -56,6 +69,8 @@
             doCheck = true;
           };
           pklx = self.packages.${system}.default;
+          inherit docs;
+          site = docs;
         }
       );
 
@@ -100,9 +115,20 @@
           cargoConfig = rs-harbor.lib.mkCargoConfig { inherit pkgs; };
           cross = rs-harbor.lib.mkCross { inherit pkgs system; };
         in
-        rs-harbor.lib.mkDevShells {
+        (rs-harbor.lib.mkDevShells {
           inherit pkgs cross cargoConfig;
           inherit (toolchain) craneLib;
+          packages = with pkgs; [mdbook];
+        })
+        // {
+          docs = rs-harbor.lib.mkDocsShell {
+            inherit pkgs cross cargoConfig;
+            inherit (toolchain) craneLib;
+            packages = with pkgs; [mdbook];
+            extraShellHook = ''
+              echo "Documentation: mdbook serve docs"
+            '';
+          };
         }
       );
     };
