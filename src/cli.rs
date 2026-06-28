@@ -15,7 +15,7 @@ pub async fn eval_pkl(path: &Path) -> miette::Result<String> {
     let value = evaluator
         .eval_file_pub(path)
         .await
-        .map_err(|e| nix_serializer::Error::Pkl(e))
+        .map_err(nix_serializer::Error::Pkl)
         .into_diagnostic()
         .wrap_err_with(|| format!("Failed to evaluate '{}'", path.display()))?;
 
