@@ -1,0 +1,9 @@
+class User {
+  name: String
+  age: Int
+}
+
+users = new {
+  alice = new User { name = "Alice" age = 30 }
+  bob = new User { name = "Bob" age = 25 }
+}

@@ -1,0 +1,7 @@
+class Greeting {
+  message: String = "hello"
+  target: String = "world"
+}
+
+local base = new Greeting { message = "hi" }
+result = (base) { target = "there" }

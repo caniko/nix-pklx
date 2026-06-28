@@ -1,0 +1,16 @@
+server = new {
+  host = "example.com"
+  port = 443
+  tls = true
+}
+
+tags = new {
+  ["env"] = "production"
+  ["region"] = "us-east"
+}
+
+items = new Listing {
+  1
+  2
+  3
+}

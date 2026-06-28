@@ -1,0 +1,6 @@
+/target
+/.cargo/config.toml
+/result
+*.swp
+*.swo
+.direnv

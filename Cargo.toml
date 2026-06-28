@@ -1,0 +1,29 @@
+[package]
+name = "pklx"
+version = "0.1.0"
+edition = "2021"
+rust-version = "1.78"
+description = "Pkl ↔ Nix interop: evaluate Pkl files to native Nix expressions + Nix library"
+license = "MIT OR Apache-2.0"
+repository = "https://codeberg.org/caniko/nix-pklx"
+homepage = "https://codeberg.org/caniko/nix-pklx"
+keywords = ["pkl", "nix", "nixos", "configuration"]
+categories = ["encoding", "config"]
+readme = "README.md"
+exclude = ["lib/", "flake.nix", "flake.lock", ".envrc", ".gitignore"]
+
+[features]
+default = ["cli"]
+cli = ["dep:clap"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"], optional = true }
+pklr = { git = "https://github.com/stempler/pklr", branch = "fix/preserve-type-name-on-amend" }
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
+miette = "7"
+thiserror = "2"
+serde_json = "1"
+indexmap = "2"
+
+[dev-dependencies]
+serde = { version = "1", features = ["derive"] }
