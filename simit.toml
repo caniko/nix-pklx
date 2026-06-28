@@ -1,0 +1,4 @@
+[ci]
+runtime = "nix"
+runner = "medium"
+with_docs = true
