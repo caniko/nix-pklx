@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Fix clippy `redundant_closure` lint in `eval_pkl`
+- Fix Pages CI: copy nix build output to a regular directory instead of relying on the `result` symlink
+
 ### Added
 
 - `pklx eval` — evaluate a `.pkl` file and emit a Nix expression
