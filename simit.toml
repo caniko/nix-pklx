@@ -2,3 +2,4 @@
 runtime = "nix"
 runner = "codeberg-medium"
 with_docs = true
+step_runners = { nix-check = "atlas-nix-trusted" }
