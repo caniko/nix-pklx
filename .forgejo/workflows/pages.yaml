@@ -15,11 +15,13 @@ jobs:
         uses: https://github.com/cachix/install-nix-action@v31
 
       - name: Build site
-        run: nix build .#site
+        run: |
+          out=$(nix build .#site --no-link --print-out-paths)
+          cp -rL "$out" ./public
 
       - name: Publish to Codeberg Pages
         uses: https://codeberg.org/git-pages/action@v2
         with:
           site: "https://${{ forge.repository_owner }}.codeberg.page/nix-pklx/"
           token: ${{ forge.token }}
-          source: result/
+          source: public/
