@@ -93,7 +93,7 @@
             mkdir -p $out
             cp -rL --no-preserve=mode ${docs}/. $out/
             printf '%s\n' "nix-pklx.tartanoglu.com" > $out/.domains
-          ';
+          '';
         }
       );
 
