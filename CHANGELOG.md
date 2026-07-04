@@ -7,18 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- Fix clippy `redundant_closure` lint in `eval_pkl`
-- Fix Pages CI: copy nix build output to a regular directory instead of relying on the `result` symlink
-
 ### Added
 
-- `pklx eval` — evaluate a `.pkl` file and emit a Nix expression
-- `pklx eval --module` — wrap output in a NixOS module skeleton
-- `pklx to-pkl` — convert a Nix-like expression to Pkl syntax
-- `pklx analyze` — list transitive local file imports of a `.pkl` file
-- `pkl_value_to_nix` — serialize a `pklr::Value` to a Nix expression string
-- Nix library: `importPkl`, `toPkl`, `fromPkl`
-- Nix flake with crane build, checks, and rs-harbor dev shells
-- Preserves Pkl class identity via `__pkl_class` attribute (relies on pklr#115)
+- `PklValueDeserializer` — serde `Deserializer` impl over `pklr::Value` for direct
+  Rust-to-Rust deserialization without JSON string intermediates
+- `from_pkl_value`, `eval_to_typed`, `eval_source_to_typed` — deserialize Pkl
+  values directly into any `T: DeserializeOwned` via the new deserializer
+- `pkl_string_literal` — Pkl string escaper without `serde_json` dependency
+- `eval_to_value`, `eval_source_to_value` — evaluate Pkl to raw `pklr::Value`
+- `pklx eval --expr` — evaluate inline Pkl expression strings
+- `pklx eval --http-rewrite` / `--http-proxy` — HTTP rewrite and proxy config
+  for Pkl evaluator
+- `pub use pklr` — re-export `pklr` crate so consumers can access
+  `pklx::pklr::EvalOptions` and `pklx::pklr::reqwest`
+
+### Changed
+
+- Bump `pklr` from stempler git fork (`#dda90eb`) to crates.io `^1.1.2` (upstreams
+  the `type_name` fix from pklr#115)
+- `serde` promoted from dev-dependency to regular dependency (required for
+  `PklValueDeserializer`)
+- `eval_pkl`, `eval_pkl_source`, `analyze_pkl_imports` — moved from `cli.rs`
+  to `eval.rs` module (available without `cli` feature gate)
