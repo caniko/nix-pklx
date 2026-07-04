@@ -1,32 +1,3 @@
-use miette::{bail, IntoDiagnostic, WrapErr};
-use std::path::Path;
-
-use crate::nix_serializer::{self, pkl_value_to_nix};
-
-/// Evaluate a .pkl file and return a Nix expression string.
-pub async fn eval_pkl(path: &Path) -> miette::Result<String> {
-    if !path.exists() {
-        bail!("File not found: {}", path.display());
-    }
-
-    let mut evaluator = pklr::Evaluator::new();
-    evaluator.set_base_path(path.parent().unwrap_or_else(|| Path::new(".")));
-
-    let value = evaluator
-        .eval_file_pub(path)
-        .await
-        .map_err(nix_serializer::Error::Pkl)
-        .into_diagnostic()
-        .wrap_err_with(|| format!("Failed to evaluate '{}'", path.display()))?;
-
-    Ok(pkl_value_to_nix(&value))
-}
-
-/// Analyze local import dependencies of a .pkl file.
-pub fn analyze_pkl_imports(path: &Path) -> miette::Result<Vec<std::path::PathBuf>> {
-    pklr::analyze_imports(path).map_err(|e| miette::miette!("Failed to analyze imports: {}", e))
-}
-
 /// Convert a Nix expression string to Pkl syntax.
 /// Accepts JSON-compatible Nix-like expressions.
 pub fn nix_to_pkl(expr: &str) -> miette::Result<String> {

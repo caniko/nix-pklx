@@ -9,10 +9,27 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// Evaluate a .pkl file and emit a Nix expression
+    /// Evaluate a .pkl file or expression and emit a Nix expression
+    #[command(group(
+        clap::ArgGroup::new("source")
+            .required(true)
+            .args(&["file", "expr"])
+    ))]
     Eval {
-        /// Path to the .pkl file
-        file: std::path::PathBuf,
+        /// Path to the .pkl file (mutually exclusive with --expr)
+        file: Option<std::path::PathBuf>,
+
+        /// Evaluate a Pkl expression string instead of a file
+        #[arg(long)]
+        expr: Option<String>,
+
+        /// HTTP URL rewrite rules in "source_prefix=target_prefix" format
+        #[arg(long = "http-rewrite")]
+        http_rewrite: Vec<String>,
+
+        /// HTTP proxy URL (e.g. http://proxy:8080)
+        #[arg(long = "http-proxy")]
+        http_proxy: Option<String>,
 
         /// Wrap the output in a NixOS module skeleton
         #[arg(long)]
@@ -44,10 +61,35 @@ async fn main() -> miette::Result<()> {
     match cli.command {
         Command::Eval {
             file,
+            expr,
+            http_rewrite,
+            http_proxy,
             module,
             output,
         } => {
-            let nix = pklx::cli::eval_pkl(&file).await?;
+            let mut options = pklr::EvalOptions::default();
+
+            if !http_rewrite.is_empty() {
+                options.http_rewrites = http_rewrite;
+            }
+
+            if let Some(proxy_url) = http_proxy {
+                let proxy = pklr::reqwest::Proxy::all(&proxy_url)
+                    .map_err(|e| miette::miette!("Invalid proxy URL '{}': {}", proxy_url, e))?;
+                let client = pklr::reqwest::Client::builder()
+                    .proxy(proxy)
+                    .build()
+                    .map_err(|e| miette::miette!("Failed to build HTTP client: {}", e))?;
+                options.client = Some(client);
+            }
+
+            let nix = if let Some(source) = expr {
+                pklx::eval_pkl_source(&source, options).await?
+            } else {
+                let file = file
+                    .expect("clap ensures --expr or file is present");
+                pklx::eval_pkl(&file, options).await?
+            };
 
             let result = if module {
                 let inner = nix.trim();
@@ -76,7 +118,7 @@ async fn main() -> miette::Result<()> {
         }
 
         Command::Analyze { file } => {
-            let deps = pklx::cli::analyze_pkl_imports(&file)?;
+            let deps = pklx::analyze_pkl_imports(&file)?;
             for dep in deps {
                 println!("{}", dep.display());
             }
