@@ -1,4 +1,7 @@
-use serde::de::{self, DeserializeOwned, DeserializeSeed, Deserializer, EnumAccess, MapAccess, SeqAccess, VariantAccess, Visitor};
+use serde::de::{
+    self, DeserializeOwned, DeserializeSeed, Deserializer, EnumAccess, MapAccess, SeqAccess,
+    VariantAccess, Visitor,
+};
 use std::fmt;
 
 use crate::eval;
@@ -43,8 +46,7 @@ pub async fn eval_source_to_typed<T: DeserializeOwned>(
     options: pklr::EvalOptions,
 ) -> miette::Result<T> {
     let value = eval::eval_source_to_value(source, options).await?;
-    from_pkl_value(&value)
-        .map_err(|e| miette::miette!("Failed to deserialize Pkl expression: {e}"))
+    from_pkl_value(&value).map_err(|e| miette::miette!("Failed to deserialize Pkl expression: {e}"))
 }
 
 pub fn pkl_string_literal(value: &str) -> String {
@@ -87,9 +89,7 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
                 visitor.visit_map(&mut ma)
             }
             pklr::Value::List(items) => {
-                let mut sa = SeqAccessor {
-                    iter: items.iter(),
-                };
+                let mut sa = SeqAccessor { iter: items.iter() };
                 visitor.visit_seq(&mut sa)
             }
             pklr::Value::Lambda(..) => Err(de::Error::custom(
@@ -252,9 +252,7 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
 
     fn deserialize_seq<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         if let pklr::Value::List(items) = self.value {
-            let mut sa = SeqAccessor {
-                iter: items.iter(),
-            };
+            let mut sa = SeqAccessor { iter: items.iter() };
             visitor.visit_seq(&mut sa)
         } else {
             self.deserialize_any(visitor)
@@ -312,17 +310,11 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
         }
     }
 
-    fn deserialize_identifier<V: Visitor<'de>>(
-        self,
-        visitor: V,
-    ) -> Result<V::Value, Self::Error> {
+    fn deserialize_identifier<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         self.deserialize_str(visitor)
     }
 
-    fn deserialize_ignored_any<V: Visitor<'de>>(
-        self,
-        visitor: V,
-    ) -> Result<V::Value, Self::Error> {
+    fn deserialize_ignored_any<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         visitor.visit_unit()
     }
 }
@@ -339,9 +331,7 @@ impl<'de> SeqAccess<'de> for SeqAccessor<'de> {
         T: DeserializeSeed<'de>,
     {
         match self.iter.next() {
-            Some(value) => seed
-                .deserialize(PklValueDeserializer { value })
-                .map(Some),
+            Some(value) => seed.deserialize(PklValueDeserializer { value }).map(Some),
             None => Ok(None),
         }
     }
@@ -446,9 +436,7 @@ impl<'de> Deserializer<'de> for PklStrDeserializer<'de> {
         visitor.visit_some(self)
     }
     fn deserialize_unit<V: Visitor<'de>>(self, _visitor: V) -> Result<V::Value, Self::Error> {
-        Err(de::Error::custom(
-            "expected string, found unit for map key",
-        ))
+        Err(de::Error::custom("expected string, found unit for map key"))
     }
     fn deserialize_unit_struct<V: Visitor<'de>>(
         self,
@@ -485,9 +473,7 @@ impl<'de> Deserializer<'de> for PklStrDeserializer<'de> {
         self.deserialize_seq(visitor)
     }
     fn deserialize_map<V: Visitor<'de>>(self, _visitor: V) -> Result<V::Value, Self::Error> {
-        Err(de::Error::custom(
-            "expected string, found map for map key",
-        ))
+        Err(de::Error::custom("expected string, found map for map key"))
     }
     fn deserialize_struct<V: Visitor<'de>>(
         self,
@@ -505,16 +491,10 @@ impl<'de> Deserializer<'de> for PklStrDeserializer<'de> {
     ) -> Result<V::Value, Self::Error> {
         visitor.visit_enum(PklEnumAccess { value: self.value })
     }
-    fn deserialize_identifier<V: Visitor<'de>>(
-        self,
-        visitor: V,
-    ) -> Result<V::Value, Self::Error> {
+    fn deserialize_identifier<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         self.deserialize_str(visitor)
     }
-    fn deserialize_ignored_any<V: Visitor<'de>>(
-        self,
-        visitor: V,
-    ) -> Result<V::Value, Self::Error> {
+    fn deserialize_ignored_any<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         visitor.visit_unit()
     }
 }
@@ -558,9 +538,7 @@ impl<'de> VariantAccess<'de> for PklUnitVariant {
     where
         V: Visitor<'de>,
     {
-        Err(de::Error::custom(
-            "unit enum expected, found tuple variant",
-        ))
+        Err(de::Error::custom("unit enum expected, found tuple variant"))
     }
 
     fn struct_variant<V>(
@@ -594,9 +572,7 @@ mod tests {
             "null" => pklr::Value::Null,
             "true" => pklr::Value::Bool(true),
             "false" => pklr::Value::Bool(false),
-            n if n.starts_with('"') => {
-                pklr::Value::String(n.trim_matches('"').to_string())
-            }
+            n if n.starts_with('"') => pklr::Value::String(n.trim_matches('"').to_string()),
             n if n.parse::<i64>().is_ok() => pklr::Value::Int(n.parse().unwrap()),
             n if n.parse::<f64>().is_ok() => pklr::Value::Float(n.parse().unwrap()),
             _ => panic!("unsupported test value: {s}"),
@@ -624,10 +600,10 @@ mod tests {
     #[test]
     fn deserialize_bool() {
         let val = pkl_value("true");
-        assert_eq!(from_pkl_value::<bool>(&val).unwrap(), true);
+        assert!(from_pkl_value::<bool>(&val).unwrap());
 
         let val = pkl_value("false");
-        assert_eq!(from_pkl_value::<bool>(&val).unwrap(), false);
+        assert!(!from_pkl_value::<bool>(&val).unwrap());
     }
 
     #[test]
@@ -638,8 +614,8 @@ mod tests {
 
     #[test]
     fn deserialize_float() {
-        let val = pkl_value("3.14");
-        assert_eq!(from_pkl_value::<f64>(&val).unwrap(), 3.14);
+        let val = pkl_value("2.5");
+        assert_eq!(from_pkl_value::<f64>(&val).unwrap(), 2.5);
     }
 
     #[test]
@@ -687,10 +663,7 @@ mod tests {
             _ => unreachable!(),
         };
         let mut outer_map = indexmap::IndexMap::new();
-        outer_map.insert(
-            "inner".to_string(),
-            pklr::Value::Object(inner_arc, None),
-        );
+        outer_map.insert("inner".to_string(), pklr::Value::Object(inner_arc, None));
         let outer = pklr::Value::Object(Arc::new(outer_map), None);
 
         #[derive(Debug, Deserialize, PartialEq)]

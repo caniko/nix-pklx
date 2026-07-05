@@ -35,6 +35,10 @@ enum Command {
         #[arg(long)]
         module: bool,
 
+        /// Emit data-only Nix without Pkl class metadata or null fields
+        #[arg(long = "data-only")]
+        data_only: bool,
+
         /// Write output to file instead of stdout
         #[arg(short, long)]
         output: Option<std::path::PathBuf>,
@@ -65,6 +69,7 @@ async fn main() -> miette::Result<()> {
             http_rewrite,
             http_proxy,
             module,
+            data_only,
             output,
         } => {
             let mut options = pklr::EvalOptions::default();
@@ -83,12 +88,18 @@ async fn main() -> miette::Result<()> {
                 options.client = Some(client);
             }
 
-            let nix = if let Some(source) = expr {
-                pklx::eval_pkl_source(&source, options).await?
+            let serializer_options = if data_only {
+                pklx::SerializeOptions::data_only()
             } else {
-                let file = file
-                    .expect("clap ensures --expr or file is present");
-                pklx::eval_pkl(&file, options).await?
+                pklx::SerializeOptions::default()
+            };
+
+            let nix = if let Some(source) = expr {
+                pklx::eval_pkl_source_with_serializer_options(&source, options, serializer_options)
+                    .await?
+            } else {
+                let file = file.expect("clap ensures --expr or file is present");
+                pklx::eval_pkl_with_serializer_options(&file, options, serializer_options).await?
             };
 
             let result = if module {

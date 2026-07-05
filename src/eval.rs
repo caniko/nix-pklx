@@ -1,7 +1,7 @@
 use miette::{bail, IntoDiagnostic, WrapErr};
 use std::path::Path;
 
-use crate::nix_serializer;
+use crate::nix_serializer::{self, SerializeOptions};
 
 fn apply_options(evaluator: &mut pklr::Evaluator, options: &pklr::EvalOptions) {
     if let Some(client) = &options.client {
@@ -52,13 +52,36 @@ pub async fn eval_pkl(path: &Path, options: pklr::EvalOptions) -> miette::Result
     Ok(nix_serializer::pkl_value_to_nix(&value))
 }
 
-/// Evaluate a Pkl source string and return a Nix expression string.
-pub async fn eval_pkl_source(
-    source: &str,
+/// Evaluate a .pkl file and return a Nix expression string with serializer options.
+pub async fn eval_pkl_with_serializer_options(
+    path: &Path,
     options: pklr::EvalOptions,
+    serializer_options: SerializeOptions,
 ) -> miette::Result<String> {
+    let value = eval_to_value(path, options).await?;
+    Ok(nix_serializer::pkl_value_to_nix_with_options(
+        &value,
+        serializer_options,
+    ))
+}
+
+/// Evaluate a Pkl source string and return a Nix expression string.
+pub async fn eval_pkl_source(source: &str, options: pklr::EvalOptions) -> miette::Result<String> {
     let value = eval_source_to_value(source, options).await?;
     Ok(nix_serializer::pkl_value_to_nix(&value))
+}
+
+/// Evaluate a Pkl source string and return a Nix expression string with serializer options.
+pub async fn eval_pkl_source_with_serializer_options(
+    source: &str,
+    options: pklr::EvalOptions,
+    serializer_options: SerializeOptions,
+) -> miette::Result<String> {
+    let value = eval_source_to_value(source, options).await?;
+    Ok(nix_serializer::pkl_value_to_nix_with_options(
+        &value,
+        serializer_options,
+    ))
 }
 
 /// Analyze local import dependencies of a .pkl file.

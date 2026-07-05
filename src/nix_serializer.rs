@@ -10,12 +10,41 @@ pub enum Error {
     Io(#[from] std::io::Error),
 }
 
-/// Serialize a `pklr::Value` into a Nix expression string.
-pub fn pkl_value_to_nix(value: &Value) -> String {
-    value_to_nix_inner(value, 0)
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct SerializeOptions {
+    pub include_class_metadata: bool,
+    pub include_null_fields: bool,
 }
 
-fn value_to_nix_inner(value: &Value, indent: usize) -> String {
+impl Default for SerializeOptions {
+    fn default() -> Self {
+        Self {
+            include_class_metadata: true,
+            include_null_fields: true,
+        }
+    }
+}
+
+impl SerializeOptions {
+    pub fn data_only() -> Self {
+        Self {
+            include_class_metadata: false,
+            include_null_fields: false,
+        }
+    }
+}
+
+/// Serialize a `pklr::Value` into a Nix expression string.
+pub fn pkl_value_to_nix(value: &Value) -> String {
+    pkl_value_to_nix_with_options(value, SerializeOptions::default())
+}
+
+/// Serialize a `pklr::Value` into a Nix expression string with explicit output options.
+pub fn pkl_value_to_nix_with_options(value: &Value, options: SerializeOptions) -> String {
+    value_to_nix_inner(value, 0, options)
+}
+
+fn value_to_nix_inner(value: &Value, indent: usize, options: SerializeOptions) -> String {
     match value {
         Value::Null => "null".to_string(),
 
@@ -34,19 +63,24 @@ fn value_to_nix_inner(value: &Value, indent: usize) -> String {
 
             let mut out = "{ ".to_string();
 
-            if let Some(src) = source {
-                if let Some(ref type_name) = src.type_name {
-                    out.push_str(&format!("__pkl_class = \"{}\"; ", type_name));
+            if options.include_class_metadata {
+                if let Some(src) = source {
+                    if let Some(ref type_name) = src.type_name {
+                        out.push_str(&format!("__pkl_class = \"{}\"; ", type_name));
+                    }
                 }
             }
 
             for (k, v) in map.iter() {
+                if !options.include_null_fields && matches!(v, Value::Null) {
+                    continue;
+                }
                 let key = if is_simple_nix_ident(k) {
                     k.clone()
                 } else {
                     escape_nix_quoted_key(k)
                 };
-                let val = value_to_nix_inner(v, indent + 2);
+                let val = value_to_nix_inner(v, indent + 2, options);
                 out.push_str(&format!("{} = {}; ", key, val));
             }
 
@@ -61,7 +95,7 @@ fn value_to_nix_inner(value: &Value, indent: usize) -> String {
             let child_indent = indent + 2;
             let mut out = "[\n".to_string();
             for item in items {
-                let val = value_to_nix_inner(item, child_indent);
+                let val = value_to_nix_inner(item, child_indent, options);
                 out.push_str(&format!("{}{}\n", " ".repeat(child_indent), val));
             }
             out.push_str(&format!("{}]", " ".repeat(indent)));

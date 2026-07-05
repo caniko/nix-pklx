@@ -1,16 +1,19 @@
-pub mod nix_serializer;
 pub mod deserializer;
 pub mod eval;
+pub mod nix_serializer;
 
 #[cfg(feature = "cli")]
 pub mod cli;
 
-pub use pklr;
-pub use nix_serializer::{pkl_value_to_nix, Error};
 pub use deserializer::{
-    from_pkl_value, eval_to_typed, eval_source_to_typed, pkl_string_literal,
-    PklValueDeserializer, PklDeserializeError,
+    eval_source_to_typed, eval_to_typed, from_pkl_value, pkl_string_literal, PklDeserializeError,
+    PklValueDeserializer,
 };
 pub use eval::{
-    eval_to_value, eval_source_to_value, eval_pkl, eval_pkl_source, analyze_pkl_imports,
+    analyze_pkl_imports, eval_pkl, eval_pkl_source, eval_pkl_source_with_serializer_options,
+    eval_pkl_with_serializer_options, eval_source_to_value, eval_to_value,
 };
+pub use nix_serializer::{
+    pkl_value_to_nix, pkl_value_to_nix_with_options, Error, SerializeOptions,
+};
+pub use pklr;
