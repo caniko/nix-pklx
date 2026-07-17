@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Update `pklr` to 1.2.0 and explicitly enable its parser, evaluator, native IO,
+  HTTP, package ZIP, and miette diagnostic features.
+- Raise the MSRV to Rust 1.88 to match `pklr` 1.2.0.
+
 ### Added
 
 - `PklValueDeserializer` — serde `Deserializer` impl over `pklr::Value` for direct

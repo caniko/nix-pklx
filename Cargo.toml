@@ -2,7 +2,7 @@
 name = "pklx"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.78"
+rust-version = "1.88"
 description = "Pkl ↔ Nix interop: evaluate Pkl files to native Nix expressions + Nix library"
 license = "MIT OR Apache-2.0"
 repository = "https://codeberg.org/caniko/nix-pklx"
@@ -16,9 +16,24 @@ exclude = ["lib/", "flake.nix", "flake.lock", ".envrc", ".gitignore"]
 default = ["cli"]
 cli = ["dep:clap"]
 
+[[bin]]
+name = "pklx"
+path = "src/main.rs"
+required-features = ["cli"]
+
 [dependencies]
 clap = { version = "4", features = ["derive"], optional = true }
-pklr = "1.1.2"
+# pklx evaluates local files, remote imports, and package:// ZIP archives, and
+# surfaces pklr diagnostics through miette. Keep pklr's capability features
+# explicit so a default-feature change upstream cannot silently remove one.
+pklr = { version = "1.2.0", default-features = false, features = [
+  "parse",
+  "eval-core",
+  "native-io",
+  "http",
+  "package-zip",
+  "miette-diagnostics",
+] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros"] }
 miette = "7"
 thiserror = "2"

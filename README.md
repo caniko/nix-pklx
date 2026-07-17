@@ -4,7 +4,7 @@ Pkl ↔ Nix interop: evaluate Pkl files to native Nix expressions + Nix library.
 
 **pklx** is a pure-Rust bridge between Apple's [Pkl configuration language](https://pkl-lang.org/)
 and [Nix](https://nixos.org/). It evaluates `.pkl` files directly via
-[`pklr`](https://github.com/stempler/pklr) (a pure-Rust Pkl evaluator) and
+[`pklr`](https://github.com/jdx/pklr) (a pure-Rust Pkl evaluator) and
 emits native Nix expressions — no JSON intermediate step.
 
 ## Features
