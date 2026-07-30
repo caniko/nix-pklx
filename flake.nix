@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     rs-harbor = {
-      url = "git+https://codeberg.org/caniko/rs-harbor.git?ref=trunk&rev=9bfa8bdb0ecb22d7bc11448665f7fbaebae7a759";
+      url = "git+https://codeberg.org/caniko/rs-harbor.git?ref=trunk&rev=c26b735eede8078f795651c4a9cbf0be8733b221";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.crane.follows = "crane";
       inputs.rust-overlay.follows = "rust-overlay";
@@ -133,7 +133,7 @@
     devShells = forSystems (
       system: let
         pkgs = pkgsFor system;
-        toolchain = rs-harbor.lib.mkToolchain {inherit pkgs;};
+        toolchain = rs-harbor.lib.mkToolchain {inherit pkgs; toolchainProfile = "nightly";};
         cargoConfig = rs-harbor.lib.mkCargoConfig {inherit pkgs;};
         cross = rs-harbor.lib.mkCross {inherit pkgs system;};
       in
