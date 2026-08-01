@@ -1,0 +1,4 @@
+import "typed-import.pkl" as imported
+
+schemaVersion = imported.schemaVersion
+archiveName = imported.archiveName
