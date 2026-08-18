@@ -5,3 +5,6 @@
 *.swo
 .direnv
 docs/book/
+
+# Generated
+graphify-out/
