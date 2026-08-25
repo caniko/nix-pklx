@@ -15,7 +15,7 @@
       inputs.rust-overlay.follows = "rust-overlay";
     };
     plinth = {
-      url = "git+ssh://git@codeberg.org/caniko/plinth.git";
+      url = "git+ssh://git@github.com/caniko/plinth.git";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.rs-harbor.follows = "rs-harbor";
       inputs.nix-cache-pin.inputs.rs-harbor.follows = "rs-harbor";

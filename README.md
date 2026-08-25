@@ -43,7 +43,7 @@ pklx to-pkl '{"host": "example.com", "port": 443}'
 
 ```nix
 {
-  inputs.nix-pklx.url = "git+https://codeberg.org/caniko/nix-pklx.git";
+  inputs.nix-pklx.url = "git+https://github.com/caniko/nix-pklx.git";
   # ...
   outputs = { nix-pklx, ... }: {
     nixosConfigurations.myhost = nixpkgs.lib.nixosSystem {
