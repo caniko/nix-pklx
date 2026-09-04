@@ -8,23 +8,24 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    rs-harbor = {
-      url = "git+ssh://git@github.com/caniko/rs-harbor.git?ref=trunk&rev=05cc4f162b55fa904b687db1821e2463fa813e50";
+    harbor-rs = {
+      url = "git+ssh://git@github.com/caniko/harbor-rs.git?ref=trunk&rev=05cc4f162b55fa904b687db1821e2463fa813e50";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.crane.follows = "crane";
       inputs.rust-overlay.follows = "rust-overlay";
     };
+    rs-harbor.follows = "harbor-rs";
     plinth = {
       url = "git+ssh://git@codeberg.org/caniko/plinth.git";
       inputs.nixpkgs.follows = "nixpkgs";
-      inputs.rs-harbor.follows = "rs-harbor";
-      inputs.nix-cache-pin.inputs.rs-harbor.follows = "rs-harbor";
+      inputs.rs-harbor.follows = "harbor-rs";
+      inputs.nix-cache-pin.inputs.rs-harbor.follows = "harbor-rs";
       inputs.nix-pklx.url = "git+https://github.com/caniko/nix-pklx.git?ref=trunk&rev=541c3655e9251fdd047f96a4f30810fa21f89d2f";
-      inputs.nix-pklx.inputs.rs-harbor.follows = "rs-harbor";
+      inputs.nix-pklx.inputs.rs-harbor.follows = "harbor-rs";
       inputs.nix-pklx.inputs.plinth.follows = "plinth";
-      inputs.nix-pklx.inputs.plinth.inputs.rs-harbor.follows = "rs-harbor";
-      inputs.nix-pklx.inputs.plinth.inputs.nix-cache-pin.inputs.rs-harbor.follows = "rs-harbor";
-      inputs.nix-pklx.inputs.plinth.inputs.nix-pklx.inputs.rs-harbor.follows = "rs-harbor";
+      inputs.nix-pklx.inputs.plinth.inputs.rs-harbor.follows = "harbor-rs";
+      inputs.nix-pklx.inputs.plinth.inputs.nix-cache-pin.inputs.rs-harbor.follows = "harbor-rs";
+      inputs.nix-pklx.inputs.plinth.inputs.nix-pklx.inputs.rs-harbor.follows = "harbor-rs";
     };
   };
 
@@ -33,7 +34,7 @@
     nixpkgs,
     crane,
     rust-overlay,
-    rs-harbor,
+    harbor-rs,
     plinth,
     ...
   }: let
@@ -141,17 +142,17 @@
     devShells = forSystems (
       system: let
         pkgs = pkgsFor system;
-        toolchain = rs-harbor.lib.mkToolchain {inherit pkgs; toolchainProfile = "nightly";};
-        cargoConfig = rs-harbor.lib.mkCargoConfig {inherit pkgs;};
-        cross = rs-harbor.lib.mkCross {inherit pkgs system;};
+        toolchain = harbor-rs.lib.mkToolchain {inherit pkgs; toolchainProfile = "nightly";};
+        cargoConfig = harbor-rs.lib.mkCargoConfig {inherit pkgs;};
+        cross = harbor-rs.lib.mkCross {inherit pkgs system;};
       in
-        (rs-harbor.lib.mkDevShells {
+        (harbor-rs.lib.mkDevShells {
           inherit pkgs cross cargoConfig;
           inherit (toolchain) craneLib;
           packages = with pkgs; [mdbook];
         })
         // {
-          docs = rs-harbor.lib.mkDocsShell {
+          docs = harbor-rs.lib.mkDocsShell {
             inherit pkgs cross cargoConfig;
             inherit (toolchain) craneLib;
             packages = with pkgs; [mdbook];
