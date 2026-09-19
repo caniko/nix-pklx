@@ -6,7 +6,7 @@ Add nix-pklx as a flake input:
 
 ```nix
 inputs = {
-  nix-pklx.url = "git+https://codeberg.org/caniko/nix-pklx.git";
+  nix-pklx.url = "git+https://github.com/caniko/nix-pklx.git";
 };
 ```
 
@@ -25,7 +25,7 @@ nix develop
 ## From source
 
 ```bash
-git clone https://codeberg.org/caniko/nix-pklx.git
+git clone https://github.com/caniko/nix-pklx.git
 cd nix-pklx
 nix develop
 cargo build --release
