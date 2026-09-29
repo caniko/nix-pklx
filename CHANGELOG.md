@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Pure Nix `toPklFields` and `pklString` helpers for schema-backed manifests.
+  The shared renderer preserves Unicode, escapes control characters and literal
+  backslashes, emits explicit lists, and rejects unsupported Nix types.
 - `PklValueDeserializer` — serde `Deserializer` impl over `pklr::Value` for direct
   Rust-to-Rust deserialization without JSON string intermediates
 - `from_pkl_value`, `eval_to_typed`, `eval_source_to_typed` — deserialize Pkl

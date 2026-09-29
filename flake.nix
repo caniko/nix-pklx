@@ -111,6 +111,18 @@
         };
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
       in {
+        to-pkl-roundtrip = let
+          fixture = import ./tests/to-pkl.nix {inherit (pkgs) lib;};
+        in
+          pkgs.runCommand "to-pkl-roundtrip" {
+            nativeBuildInputs = [pkgs.pkl pkgs.jq];
+          } ''
+            pkl eval -f json ${pkgs.writeText "roundtrip.pkl" fixture.document} | jq -S . > actual.json
+            jq -S . ${pkgs.writeText "expected.json" (builtins.toJSON fixture.expected)} > expected.json
+            diff -u expected.json actual.json
+            touch "$out"
+          '';
+
         pklx-tests = craneLib.cargoTest (
           commonArgs
           // {
@@ -136,11 +148,10 @@
         # Fail if flake inputs ever point at the retired Codeberg/Codefloe
         # mirrors again (fleet migrated to github.com/caniko/*).
         # sourceUrl package metadata is excluded: informational only, not fetched.
-        host-pinning =
-          let
-            # Split across literals so this file never matches its own pattern.
-            staleHosts = "cod" + "eberg|cod" + "efloe";
-          in
+        host-pinning = let
+          # Split across literals so this file never matches its own pattern.
+          staleHosts = "cod" + "eberg|cod" + "efloe";
+        in
           pkgs.runCommand "nix-pklx-host-pinning" {} ''
             if ${pkgs.lib.getExe pkgs.ripgrep} -v "sourceUrl" ${./flake.nix} ${./flake.lock} \
               | ${pkgs.lib.getExe pkgs.ripgrep} -q "${staleHosts}"; then
@@ -157,7 +168,10 @@
     devShells = forSystems (
       system: let
         pkgs = pkgsFor system;
-        toolchain = harbor-rs.lib.mkToolchain {inherit pkgs; toolchainProfile = "nightly";};
+        toolchain = harbor-rs.lib.mkToolchain {
+          inherit pkgs;
+          toolchainProfile = "nightly";
+        };
         cargoConfig = harbor-rs.lib.mkCargoConfig {inherit pkgs;};
         cross = harbor-rs.lib.mkCross {inherit pkgs system;};
       in
