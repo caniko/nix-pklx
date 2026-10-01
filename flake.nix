@@ -115,11 +115,16 @@
           fixture = import ./tests/to-pkl.nix {inherit (pkgs) lib;};
         in
           pkgs.runCommand "to-pkl-roundtrip" {
-            nativeBuildInputs = [pkgs.pkl pkgs.jq];
+            nativeBuildInputs = [pkgs.pkl pkgs.jq pkgs.nix self.packages.${system}.pklx];
+            SSL_CERT_FILE = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
           } ''
             pkl eval -f json ${pkgs.writeText "roundtrip.pkl" fixture.document} | jq -S . > actual.json
             jq -S . ${pkgs.writeText "expected.json" (builtins.toJSON fixture.expected)} > expected.json
             diff -u expected.json actual.json
+            pklx eval ${pkgs.writeText "native-roundtrip.pkl" fixture.nativeDocument} -o native.nix
+            nix-instantiate --store dummy:// --eval --strict --json native.nix | jq -S . > native.json
+            jq -S . ${pkgs.writeText "native-expected.json" (builtins.toJSON fixture.nativeExpected)} > native-expected.json
+            diff -u native-expected.json native.json
             touch "$out"
           '';
 

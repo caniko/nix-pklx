@@ -8,9 +8,60 @@
     (["\\" "\""] ++ map (code: builtins.fromJSON ''"\u${code}"'') controls)
     (["\\\\" "\\\""] ++ map (code: "\\u{${code}}") controls)
     text}\"";
+  # Pkl 0.31's Lexer.getKeywordOrIdentifier, including reserved/blank names:
+  # https://github.com/apple/pkl/blob/0.31.1/pkl-parser/src/main/java/org/pkl/parser/Lexer.java
+  keywords = [
+    "_"
+    "abstract"
+    "amends"
+    "as"
+    "case"
+    "class"
+    "const"
+    "delete"
+    "else"
+    "extends"
+    "external"
+    "false"
+    "fixed"
+    "for"
+    "function"
+    "hidden"
+    "if"
+    "import"
+    "in"
+    "is"
+    "let"
+    "local"
+    "module"
+    "new"
+    "nothing"
+    "null"
+    "open"
+    "out"
+    "outer"
+    "override"
+    "protected"
+    "read"
+    "record"
+    "super"
+    "switch"
+    "this"
+    "throw"
+    "trace"
+    "true"
+    "typealias"
+    "unknown"
+    "vararg"
+    "when"
+  ];
   identifier = name:
     if lib.hasInfix "`" name || lib.hasInfix "\n" name || lib.hasInfix "\r" name
     then throw "toPkl: property names cannot contain backticks or newlines"
+    # Native pklr consumers cannot parse backticks yet. Prefer regular names
+    # in their shared ASCII subset; retain quoting where Pkl requires it.
+    else if builtins.match "[A-Za-z_][A-Za-z_0-9]*" name != null && !(builtins.elem name keywords)
+    then name
     else "`${name}`";
   fields = attrs: lib.concatStringsSep "\n" (lib.mapAttrsToList (name: item: "${identifier name} = ${value item}") attrs);
   value = item:
