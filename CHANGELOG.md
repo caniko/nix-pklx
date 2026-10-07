@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Render ordinary ASCII property names without backticks so deployment
+  manifests also load in native Rust Pkl consumers. Keywords and non-regular
+  names retain their lossless quoted representation.
 - Update `pklr` to 1.2.0 and explicitly enable its parser, evaluator, native IO,
   HTTP, package ZIP, and miette diagnostic features.
 - Raise the MSRV to Rust 1.88 to match `pklr` 1.2.0.
