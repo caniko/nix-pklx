@@ -8,20 +8,17 @@
       url = "github:oxalica/rust-overlay";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    harbor-rs = {
-      url = "git+https://github.com/caniko/harbor-rs.git?ref=trunk&rev=ed89d0b13fc61dd1b2217bf4bba97f32cec27ba7";
+    harbor = {
+      url = "git+https://github.com/caniko/harbor.git?ref=feat/harbor-monorepo-components&rev=e8b1996580e4ecd51dd402edf4a16d9df88e3a1b";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.crane.follows = "crane";
       inputs.rust-overlay.follows = "rust-overlay";
     };
     plinth = {
-      url = "git+https://github.com/caniko/plinth.git";
-      inputs.nixpkgs.follows = "nixpkgs";
-      inputs.nix-pklx.url = "git+https://github.com/caniko/nix-pklx.git?ref=trunk&rev=4e5dbefa4c94bb8af3c9e400a1a57790a39b518b";
-      inputs.nix-pklx.inputs.plinth.follows = "plinth";
-      inputs.nix-pklx.inputs.plinth.inputs.harbor-rs.follows = "harbor-rs";
-      inputs.nix-pklx.inputs.plinth.inputs.nix-cache-pin.inputs.harbor-rs.follows = "harbor-rs";
-      inputs.nix-pklx.inputs.plinth.inputs.nix-pklx.inputs.harbor-rs.follows = "harbor-rs";
+      # Only the deployment library is consumed. Retain its locked revision
+      # without evaluating Plinth's recursive documentation input graph.
+      url = "git+https://github.com/caniko/plinth.git?ref=trunk&rev=e9951aeb17ce50b92b4e50a5abe4c25516c86060";
+      flake = false;
     };
   };
 
@@ -30,7 +27,7 @@
     nixpkgs,
     crane,
     rust-overlay,
-    harbor-rs,
+    harbor,
     plinth,
     ...
   }: let
@@ -44,6 +41,21 @@
       import nixpkgs {
         inherit system;
         overlays = [(import rust-overlay)];
+      };
+    projectSiteFor = system:
+      import (plinth.outPath + "/nix/project-site.nix") {
+        pkgs = pkgsFor system;
+        inherit (nixpkgs) lib;
+      };
+    treefmtFor = system:
+      harbor.inputs.treefmt-nix.lib.evalModule (pkgsFor system) {
+        imports = [harbor.treefmtModules.core-nix harbor.treefmtModules.core-toml harbor.treefmtModules.rust-rust];
+        projectRootFile = "flake.nix";
+        programs.rustfmt.package =
+          (harbor.lib.rust.mkToolchain {
+            pkgs = pkgsFor system;
+            toolchainProfile = "nightly";
+          }).rustToolchain;
       };
   in {
     lib = forSystems (system:
@@ -59,7 +71,7 @@
         program = "${self.packages.${system}.pklx}/bin/pklx";
       };
       default = self.apps.${system}.eval;
-      deploy-pages = plinth.lib.${system}.mkDeployPagesApp {
+      deploy-pages = (projectSiteFor system).mkDeployPagesApp {
         domain = "nix-pklx.tartanoglu.com";
       };
     });
@@ -145,10 +157,7 @@
           }
         );
 
-        pklx-fmt = craneLib.cargoFmt {
-          inherit src;
-          pname = "pklx";
-        };
+        pklx-fmt = (treefmtFor system).config.build.check self;
 
         # Fail if flake inputs ever point at the retired Codeberg/Codefloe
         # mirrors again (fleet migrated to github.com/caniko/*).
@@ -173,28 +182,29 @@
     devShells = forSystems (
       system: let
         pkgs = pkgsFor system;
-        toolchain = harbor-rs.lib.mkToolchain {
+        toolchain = harbor.lib.rust.mkToolchain {
           inherit pkgs;
           toolchainProfile = "nightly";
         };
-        cargoConfig = harbor-rs.lib.mkCargoConfig {inherit pkgs;};
-        cross = harbor-rs.lib.mkCross {inherit pkgs system;};
+        cargoConfig = harbor.lib.rust.mkCargoConfig {inherit pkgs;};
+        cross = harbor.lib.rust.mkCross {inherit pkgs system;};
       in
-        (harbor-rs.lib.mkDevShells {
+        (harbor.lib.rust.mkDevShells {
           inherit pkgs cross cargoConfig;
           inherit (toolchain) craneLib;
-          packages = with pkgs; [mdbook];
+          packages = [pkgs.mdbook (treefmtFor system).config.build.wrapper];
         })
         // {
-          docs = harbor-rs.lib.mkDocsShell {
+          docs = harbor.lib.rust.mkDocsShell {
             inherit pkgs cross cargoConfig;
             inherit (toolchain) craneLib;
-            packages = with pkgs; [mdbook];
+            packages = [pkgs.mdbook (treefmtFor system).config.build.wrapper];
             extraShellHook = ''
               echo "Documentation: mdbook serve docs"
             '';
           };
         }
     );
+    formatter = forSystems (system: (treefmtFor system).config.build.wrapper);
   };
 }

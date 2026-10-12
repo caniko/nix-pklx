@@ -1,4 +1,4 @@
-use miette::{bail, IntoDiagnostic, WrapErr};
+use miette::{IntoDiagnostic, WrapErr, bail};
 use std::path::Path;
 
 use crate::nix_serializer::{self, SerializeOptions};
