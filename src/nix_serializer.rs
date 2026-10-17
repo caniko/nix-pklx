@@ -103,6 +103,8 @@ fn value_to_nix_inner(value: &Value, indent: usize, options: SerializeOptions) -
         }
 
         Value::Lambda(..) => "\"<lambda>\"".to_string(),
+        // Pklr 5.1 represents collections as List/Object above; only its
+        // scalar Regex, Duration and DataSize variants reach this fallback.
         value => value_to_nix_inner(&Value::from(value.to_json()), indent, options),
     }
 }

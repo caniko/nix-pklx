@@ -117,6 +117,29 @@ async fn class_metadata_and_data_only_output_are_preserved() {
 }
 
 #[tokio::test]
+async fn sets_and_maps_preserve_nested_class_metadata() {
+    let source = "class Entry { name: String }\nentries = Set(new Entry { name = \"set\" })\nbyName = Map(\"entry\", new Entry { name = \"map\" })\n";
+    let normal = pklx::eval_pkl_source(source, EvalOptions::default())
+        .await
+        .unwrap();
+    assert_eq!(
+        normal.matches("__pkl_class = \"Entry\"").count(),
+        2,
+        "{normal}"
+    );
+    let data = pklx::eval_pkl_source_with_serializer_options(
+        source,
+        EvalOptions::default(),
+        pklx::SerializeOptions::data_only(),
+    )
+    .await
+    .unwrap();
+    assert!(!data.contains("__pkl_class"), "{data}");
+    assert!(data.contains("name = \"set\""), "{data}");
+    assert!(data.contains("name = \"map\""), "{data}");
+}
+
+#[tokio::test]
 async fn http_rewrites_and_custom_agents_reach_only_the_local_fixture() {
     let (address, server) = serve(b"answer = 42\n".to_vec());
     let value: serde_json::Value = pklx::eval_source_to_typed(
