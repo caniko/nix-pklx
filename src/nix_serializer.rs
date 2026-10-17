@@ -65,8 +65,8 @@ fn value_to_nix_inner(value: &Value, indent: usize, options: SerializeOptions) -
 
             if options.include_class_metadata {
                 if let Some(src) = source {
-                    if let Some(ref type_name) = src.type_name {
-                        out.push_str(&format!("__pkl_class = \"{}\"; ", type_name));
+                    if let Some(type_name) = src.type_name() {
+                        out.push_str(&format!("__pkl_class = \"{type_name}\"; "));
                     }
                 }
             }
@@ -76,12 +76,12 @@ fn value_to_nix_inner(value: &Value, indent: usize, options: SerializeOptions) -
                     continue;
                 }
                 let key = if is_simple_nix_ident(k) {
-                    k.clone()
+                    k.to_string()
                 } else {
                     escape_nix_quoted_key(k)
                 };
                 let val = value_to_nix_inner(v, indent + 2, options);
-                out.push_str(&format!("{} = {}; ", key, val));
+                out.push_str(&format!("{key} = {val}; "));
             }
 
             out.push('}');
@@ -94,7 +94,7 @@ fn value_to_nix_inner(value: &Value, indent: usize, options: SerializeOptions) -
             }
             let child_indent = indent + 2;
             let mut out = "[\n".to_string();
-            for item in items {
+            for item in items.iter() {
                 let val = value_to_nix_inner(item, child_indent, options);
                 out.push_str(&format!("{}{}\n", " ".repeat(child_indent), val));
             }
@@ -103,6 +103,7 @@ fn value_to_nix_inner(value: &Value, indent: usize, options: SerializeOptions) -
         }
 
         Value::Lambda(..) => "\"<lambda>\"".to_string(),
+        value => value_to_nix_inner(&Value::from(value.to_json()), indent, options),
     }
 }
 
@@ -116,9 +117,9 @@ fn format_nix_float(f: f64) -> String {
     } else if f.is_nan() {
         "NaN".to_string()
     } else {
-        let s = format!("{}", f);
+        let s = f.to_string();
         if !s.contains('.') && !s.contains('e') && !s.contains('E') {
-            format!("{}.0", s)
+            format!("{s}.0")
         } else {
             s
         }
@@ -131,12 +132,12 @@ fn format_nix_string(s: &str) -> String {
             .replace('\\', "\\\\")
             .replace('\"', "\\\"")
             .replace("${", "\\${");
-        format!("\"{}\"", escaped)
+        format!("\"{escaped}\"")
     } else if s.contains("${") {
         let escaped = s.replace("${", "\\${");
-        format!("\"{}\"", escaped)
+        format!("\"{escaped}\"")
     } else {
-        format!("\"{}\"", s)
+        format!("\"{s}\"")
     }
 }
 
@@ -162,13 +163,13 @@ fn escape_nix_quoted_key(k: &str) -> String {
         .replace('\\', "\\\\")
         .replace('\"', "\\\"")
         .replace("${", "\\${");
-    format!("\"{}\"", escaped)
+    format!("\"{escaped}\"")
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use indexmap::IndexMap;
+    use pklr::value::ObjectMap;
     use std::sync::Arc;
 
     #[test]
@@ -218,12 +219,12 @@ mod tests {
 
     #[test]
     fn test_empty_list() {
-        assert_eq!(pkl_value_to_nix(&Value::List(vec![])), "[ ]");
+        assert_eq!(pkl_value_to_nix(&Value::List(vec![].into())), "[ ]");
     }
 
     #[test]
     fn test_list() {
-        let list = Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)]);
+        let list = Value::List(vec![Value::Int(1), Value::Int(2), Value::Int(3)].into());
         let result = pkl_value_to_nix(&list);
         assert!(result.contains("1"));
         assert!(result.contains("2"));
@@ -232,13 +233,13 @@ mod tests {
 
     #[test]
     fn test_empty_object() {
-        let map: IndexMap<String, Value> = IndexMap::new();
+        let map = ObjectMap::default();
         assert_eq!(pkl_value_to_nix(&Value::Object(Arc::new(map), None)), "{ }");
     }
 
     #[test]
     fn test_object() {
-        let mut map = IndexMap::new();
+        let mut map = ObjectMap::default();
         map.insert("name".into(), Value::String("test".into()));
         map.insert("count".into(), Value::Int(42));
         let result = pkl_value_to_nix(&Value::Object(Arc::new(map), None));
@@ -248,9 +249,9 @@ mod tests {
 
     #[test]
     fn test_nested_object() {
-        let mut inner = IndexMap::new();
+        let mut inner = ObjectMap::default();
         inner.insert("x".into(), Value::Int(1));
-        let mut outer = IndexMap::new();
+        let mut outer = ObjectMap::default();
         outer.insert("inner".into(), Value::Object(Arc::new(inner), None));
         let result = pkl_value_to_nix(&Value::Object(Arc::new(outer), None));
         assert!(result.contains("inner = {"));
@@ -259,7 +260,7 @@ mod tests {
 
     #[test]
     fn test_ident_key_with_hyphen() {
-        let mut map = IndexMap::new();
+        let mut map = ObjectMap::default();
         map.insert("my-key".into(), Value::Int(1));
         let result = pkl_value_to_nix(&Value::Object(Arc::new(map), None));
         assert!(result.contains("my-key = 1"));
@@ -267,7 +268,7 @@ mod tests {
 
     #[test]
     fn test_quoted_key() {
-        let mut map = IndexMap::new();
+        let mut map = ObjectMap::default();
         map.insert("weird!key".into(), Value::Bool(true));
         let result = pkl_value_to_nix(&Value::Object(Arc::new(map), None));
         assert!(result.contains("\"weird!key\" = true"));

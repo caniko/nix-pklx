@@ -79,13 +79,14 @@ async fn main() -> miette::Result<()> {
             }
 
             if let Some(proxy_url) = http_proxy {
-                let proxy = pklr::reqwest::Proxy::all(&proxy_url)
+                let proxy = pklr::ureq::Proxy::new(&proxy_url)
                     .map_err(|e| miette::miette!("Invalid proxy URL '{}': {}", proxy_url, e))?;
-                let client = pklr::reqwest::Client::builder()
-                    .proxy(proxy)
-                    .build()
-                    .map_err(|e| miette::miette!("Failed to build HTTP client: {}", e))?;
-                options.client = Some(client);
+                options.agent = Some(
+                    pklr::ureq::Agent::config_builder()
+                        .proxy(Some(proxy))
+                        .build()
+                        .into(),
+                );
             }
 
             let serializer_options = if data_only {
@@ -109,7 +110,7 @@ async fn main() -> miette::Result<()> {
                 } else {
                     inner
                 };
-                format!("{{ config, pkgs, ... }}: {{\n  {}\n}}", inner)
+                format!("{{ config, pkgs, ... }}: {{\n  {inner}\n}}")
             } else {
                 nix
             };
@@ -119,13 +120,13 @@ async fn main() -> miette::Result<()> {
                     miette::miette!("Failed to write output file '{}': {}", path.display(), e)
                 })?;
             } else {
-                println!("{}", result);
+                println!("{result}");
             }
         }
 
         Command::ToPkl { expr } => {
             let pkl = pklx::cli::nix_to_pkl(&expr)?;
-            println!("{}", pkl);
+            println!("{pkl}");
         }
 
         Command::Analyze { file } => {

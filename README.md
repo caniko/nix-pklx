@@ -59,6 +59,27 @@ pklx to-pkl '{"host": "example.com", "port": 443}'
 }
 ```
 
+## Migrating to 0.2
+
+Pklx 0.2 re-exports Pklr 5.1 and keeps Rust 1.88 as its minimum version.
+The async evaluation functions are unchanged; synchronous Pklr work runs on
+Tokio's blocking pool. Local imports, HTTP rewrites, package ZIPs, class
+metadata, data-only output, and typed deserialization remain supported.
+
+For custom HTTP configuration, replace `EvalOptions.client` and
+`pklx::pklr::reqwest` with `EvalOptions.agent` and `pklx::pklr::ureq`:
+
+```rust
+let options = pklx::pklr::EvalOptions {
+    agent: Some(pklx::pklr::ureq::Agent::new_with_defaults()),
+    ..Default::default()
+};
+```
+
+Code constructing raw Pklr values must also migrate to Pklr's shared types:
+use `.into()` for strings and lists, and `pklx::pklr::value::ObjectMap` for
+object members. Use `ObjectSource::type_name()` to read class metadata.
+
 ## License
 
 MIT OR Apache-2.0

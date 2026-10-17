@@ -3,13 +3,12 @@ use std::path::Path;
 
 use crate::nix_serializer::{self, SerializeOptions};
 
-fn apply_options(evaluator: &mut pklr::Evaluator, options: &pklr::EvalOptions) {
-    if let Some(client) = &options.client {
-        evaluator.set_http_client(client.clone());
+fn evaluator(options: pklr::EvalOptions) -> pklr::Evaluator {
+    let mut builder = pklr::EvaluatorBuilder::new().http_rewrites(options.http_rewrites);
+    if let Some(agent) = options.agent {
+        builder = builder.http_agent(agent);
     }
-    if !options.http_rewrites.is_empty() {
-        evaluator.set_http_rewrites(&options.http_rewrites);
-    }
+    builder.build()
 }
 
 /// Evaluate a .pkl file and return the raw pklr::Value.
@@ -18,16 +17,17 @@ pub async fn eval_to_value(path: &Path, options: pklr::EvalOptions) -> miette::R
         bail!("File not found: {}", path.display());
     }
 
-    let mut evaluator = pklr::Evaluator::new();
-    evaluator.set_base_path(path.parent().unwrap_or_else(|| Path::new(".")));
-    apply_options(&mut evaluator, &options);
-
-    evaluator
-        .eval_file_pub(path)
-        .await
-        .map_err(nix_serializer::Error::Pkl)
-        .into_diagnostic()
-        .wrap_err_with(|| format!("Failed to evaluate '{}'", path.display()))
+    let owned_path = path.to_path_buf();
+    tokio::task::spawn_blocking(move || {
+        let mut evaluator = evaluator(options);
+        evaluator.set_base_path(owned_path.parent().unwrap_or_else(|| Path::new(".")));
+        evaluator.eval_file(&owned_path)
+    })
+    .await
+    .into_diagnostic()?
+    .map_err(nix_serializer::Error::Pkl)
+    .into_diagnostic()
+    .wrap_err_with(|| format!("Failed to evaluate '{}'", path.display()))
 }
 
 /// Evaluate a Pkl source string and return the raw pklr::Value.
@@ -35,15 +35,15 @@ pub async fn eval_source_to_value(
     source: &str,
     options: pklr::EvalOptions,
 ) -> miette::Result<pklr::Value> {
-    let mut evaluator = pklr::Evaluator::new();
-    apply_options(&mut evaluator, &options);
-
-    evaluator
-        .eval_source(source, Path::new("<expr>"))
-        .await
-        .map_err(nix_serializer::Error::Pkl)
-        .into_diagnostic()
-        .wrap_err("Failed to evaluate Pkl expression")
+    let source = source.to_owned();
+    tokio::task::spawn_blocking(move || {
+        evaluator(options).eval_source(&source, Path::new("<expr>"))
+    })
+    .await
+    .into_diagnostic()?
+    .map_err(nix_serializer::Error::Pkl)
+    .into_diagnostic()
+    .wrap_err("Failed to evaluate Pkl expression")
 }
 
 /// Evaluate a .pkl file and return a Nix expression string.

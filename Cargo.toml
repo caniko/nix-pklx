@@ -1,6 +1,6 @@
 [package]
 name = "pklx"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 rust-version = "1.88"
 description = "Pkl ↔ Nix interop: evaluate Pkl files to native Nix expressions + Nix library"
@@ -26,8 +26,7 @@ clap = { version = "4", features = ["derive"], optional = true }
 # pklx evaluates local files, remote imports, and package:// ZIP archives, and
 # surfaces pklr diagnostics through miette. Keep pklr's capability features
 # explicit so a default-feature change upstream cannot silently remove one.
-pklr = { version = "1.2.0", default-features = false, features = [
-  "parse",
+pklr = { version = "5.1.2", default-features = false, features = [
   "eval-core",
   "native-io",
   "http",
@@ -43,3 +42,5 @@ indexmap = "2"
 
 [dev-dependencies]
 serde = { version = "1", features = ["derive"] }
+tempfile = "3"
+zip = { version = "9", default-features = false, features = ["deflate"] }

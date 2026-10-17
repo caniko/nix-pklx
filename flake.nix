@@ -71,7 +71,7 @@
 
         docs = pkgs.stdenv.mkDerivation {
           pname = "nix-pklx-docs";
-          version = "0.1.0";
+          version = "0.2.0";
           src = ./docs;
           nativeBuildInputs = [pkgs.mdbook];
           buildPhase = ''
@@ -84,7 +84,7 @@
       in {
         default = craneLib.buildPackage {
           pname = "pklx";
-          version = "0.1.0";
+          version = "0.2.0";
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
           doCheck = true;
