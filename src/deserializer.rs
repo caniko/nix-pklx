@@ -80,7 +80,7 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
             pklr::Value::Bool(b) => visitor.visit_bool(*b),
             pklr::Value::Int(n) => visitor.visit_i64(*n),
             pklr::Value::Float(f) => visitor.visit_f64(*f),
-            pklr::Value::String(s) => visitor.visit_borrowed_str(s.as_str()),
+            pklr::Value::String(s) => visitor.visit_borrowed_str(s.as_ref()),
             pklr::Value::Object(map, _) => {
                 let mut ma = MapAccessor {
                     iter: map.iter().peekable(),
@@ -95,6 +95,10 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
             pklr::Value::Lambda(..) => Err(de::Error::custom(
                 "lambda expressions cannot be deserialized",
             )),
+            value => value
+                .to_json()
+                .deserialize_any(visitor)
+                .map_err(de::Error::custom),
         }
     }
 
@@ -200,7 +204,7 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
 
     fn deserialize_str<V: Visitor<'de>>(self, visitor: V) -> Result<V::Value, Self::Error> {
         if let pklr::Value::String(s) = self.value {
-            visitor.visit_borrowed_str(s.as_str())
+            visitor.visit_borrowed_str(s.as_ref())
         } else {
             self.deserialize_any(visitor)
         }
@@ -304,7 +308,7 @@ impl<'de> Deserializer<'de> for PklValueDeserializer<'de> {
         visitor: V,
     ) -> Result<V::Value, Self::Error> {
         if let pklr::Value::String(s) = self.value {
-            visitor.visit_enum(PklEnumAccess { value: s.as_str() })
+            visitor.visit_enum(PklEnumAccess { value: s.as_ref() })
         } else {
             self.deserialize_any(visitor)
         }
@@ -338,7 +342,7 @@ impl<'de> SeqAccess<'de> for SeqAccessor<'de> {
 }
 
 struct MapAccessor<'de> {
-    iter: std::iter::Peekable<indexmap::map::Iter<'de, String, pklr::Value>>,
+    iter: std::iter::Peekable<indexmap::map::Iter<'de, std::sync::Arc<str>, pklr::Value>>,
     value: Option<&'de pklr::Value>,
 }
 
@@ -353,7 +357,7 @@ impl<'de> MapAccess<'de> for MapAccessor<'de> {
             Some((key, value)) => {
                 self.value = Some(value);
                 seed.deserialize(PklStrDeserializer {
-                    value: key.as_str(),
+                    value: key.as_ref(),
                 })
                 .map(Some)
             }
@@ -572,7 +576,7 @@ mod tests {
             "null" => pklr::Value::Null,
             "true" => pklr::Value::Bool(true),
             "false" => pklr::Value::Bool(false),
-            n if n.starts_with('"') => pklr::Value::String(n.trim_matches('"').to_string()),
+            n if n.starts_with('"') => pklr::Value::String(n.trim_matches('"').into()),
             n if n.parse::<i64>().is_ok() => pklr::Value::Int(n.parse().unwrap()),
             n if n.parse::<f64>().is_ok() => pklr::Value::Float(n.parse().unwrap()),
             _ => panic!("unsupported test value: {s}"),
@@ -580,21 +584,21 @@ mod tests {
     }
 
     fn pkl_object(pairs: Vec<(&str, &str)>) -> pklr::Value {
-        let mut map = indexmap::IndexMap::new();
+        let mut map = pklr::value::ObjectMap::default();
         for (k, v) in pairs {
-            map.insert(k.to_string(), pkl_value(v));
+            map.insert(k.into(), pkl_value(v));
         }
         pklr::Value::Object(Arc::new(map), None)
     }
 
     fn pkl_list(items: Vec<&str>) -> pklr::Value {
-        pklr::Value::List(items.into_iter().map(pkl_value).collect())
+        pklr::Value::List(items.into_iter().map(pkl_value).collect::<Vec<_>>().into())
     }
 
     #[test]
     fn deserialize_null_is_unit() {
         let val = pkl_value("null");
-        assert_eq!(from_pkl_value::<()>(&val).unwrap(), ());
+        assert!(from_pkl_value::<()>(&val).is_ok());
     }
 
     #[test]
@@ -662,8 +666,8 @@ mod tests {
             pklr::Value::Object(m, _) => m,
             _ => unreachable!(),
         };
-        let mut outer_map = indexmap::IndexMap::new();
-        outer_map.insert("inner".to_string(), pklr::Value::Object(inner_arc, None));
+        let mut outer_map = pklr::value::ObjectMap::default();
+        outer_map.insert("inner".into(), pklr::Value::Object(inner_arc, None));
         let outer = pklr::Value::Object(Arc::new(outer_map), None);
 
         #[derive(Debug, Deserialize, PartialEq)]

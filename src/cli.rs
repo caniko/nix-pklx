@@ -15,9 +15,9 @@ fn json_value_to_pkl(value: &serde_json::Value, indent: usize) -> String {
             if let Some(i) = n.as_i64() {
                 i.to_string()
             } else if let Some(f) = n.as_f64() {
-                let s = format!("{}", f);
+                let s = f.to_string();
                 if !s.contains('.') && !s.contains('e') && !s.contains('E') {
-                    format!("{}.0", s)
+                    format!("{s}.0")
                 } else {
                     s
                 }
@@ -26,7 +26,7 @@ fn json_value_to_pkl(value: &serde_json::Value, indent: usize) -> String {
             }
         }
         serde_json::Value::String(s) => {
-            format!("\"{}\"", s)
+            format!("\"{s}\"")
         }
         serde_json::Value::Array(arr) => {
             if arr.is_empty() {

@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-17
+
+### Changed
+
+- Upgrade the public `pklr` re-export to 5.1.2, retaining Rust 1.88, native
+  evaluation, HTTP imports, package ZIPs, and miette diagnostics. This is an
+  API-breaking release: HTTP options now accept a `ureq::Agent`, and Pklr
+  strings, object keys, and collections use its shared value types.
+- Run synchronous Pklr evaluation on Tokio's blocking pool while retaining
+  Pklx's asynchronous evaluation functions.
+- Resolve package archives through ZIP 9.0.4 and TLS through Rustls 0.23.46.
+
+### Added
+
+- Bounded loopback regressions for HTTP rewrites and package ZIP imports,
+  plus local import, typed value, class metadata, and offline package checks.
+
+## Earlier development
+
 ### Changed
 
 - Render ordinary ASCII property names without backticks so deployment
