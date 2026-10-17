@@ -7,10 +7,14 @@ description = "Pkl ↔ Nix interop: evaluate Pkl files to native Nix expressions
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/caniko/nix-pklx"
 homepage = "https://github.com/caniko/nix-pklx"
+documentation = "https://docs.rs/pklx"
 keywords = ["pkl", "nix", "nixos", "configuration"]
 categories = ["encoding", "config"]
 readme = "README.md"
-exclude = ["lib/", "flake.nix", "flake.lock", ".envrc", ".gitignore"]
+include = ["src/**", "tests/**", "Cargo.toml", "Cargo.lock", "README.md", "CHANGELOG.md", "LICENSE-*"]
+
+[package.metadata.docs.rs]
+all-features = true
 
 [features]
 default = ["cli"]

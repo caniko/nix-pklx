@@ -2,6 +2,8 @@
 runtime = "nix"
 runner = "ubuntu-24.04"
 with_docs = true
+with_msrv = true
+with_audit = true
 step_runners = { cargo-clippy = "ubuntu-24.04", cargo-doc = "ubuntu-24.04", cargo-fmt = "ubuntu-24.04", cargo-package = "ubuntu-24.04", cargo-test = "ubuntu-24.04", nix-check = "ubuntu-24.04", quality-tools = "ubuntu-24.04" }
 provider = "actions"
 platform = "github"

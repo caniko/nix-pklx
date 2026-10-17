@@ -186,6 +186,9 @@
           packages = with pkgs; [mdbook];
         })
         // {
+          msrv = pkgs.mkShell {
+            packages = [pkgs.rust-bin.stable."1.88.0".default pkgs.cmake pkgs.pkg-config];
+          };
           docs = harbor-rs.lib.mkDocsShell {
             inherit pkgs cross cargoConfig;
             inherit (toolchain) craneLib;
