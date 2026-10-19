@@ -99,6 +99,34 @@ async fn local_imports_and_typed_values_survive_the_evaluator_upgrade() {
 }
 
 #[tokio::test]
+async fn imported_class_constraints_keep_definition_site_bindings() {
+    let directory = tempfile::tempdir().unwrap();
+    let file = directory.path().join("main.pkl");
+    for vendors in ["vendors", "module.vendors"] {
+        std::fs::write(
+            directory.path().join("types.pkl"),
+            format!(
+                "const vendors = new Listing {{ \"amd\"; \"intel\" }}\ntypealias VendorName = String({vendors}.contains(this))\ntypealias Vendor = VendorName\nclass Host {{ vendor: Vendor }}\n"
+            ),
+        )
+        .unwrap();
+        let source = "import \"types.pkl\" as T\nlocal vendors = new Listing { \"caller\" }\ntypealias Vendor = String\nhost = new T.Host { vendor = \"amd\" }\n";
+        std::fs::write(&file, source).unwrap();
+        let actual: serde_json::Value = pklx::eval_to_typed(&file, EvalOptions::default())
+            .await
+            .unwrap_or_else(|error| panic!("{vendors}: {error:?}"));
+        assert_eq!(actual, serde_json::json!({"host": {"vendor": "amd"}}));
+        std::fs::write(&file, source.replace("\"amd\"", "\"caller\"")).unwrap();
+        assert!(
+            pklx::eval_to_typed::<serde_json::Value>(&file, EvalOptions::default())
+                .await
+                .is_err(),
+            "{vendors}: caller bindings must not weaken imported constraints"
+        );
+    }
+}
+
+#[tokio::test]
 async fn class_metadata_and_data_only_output_are_preserved() {
     let source = "class Entry { name: String }\nentry = new Entry { name = \"worker\" }\nmissing: String? = null\n";
     let normal = pklx::eval_pkl_source(source, EvalOptions::default())

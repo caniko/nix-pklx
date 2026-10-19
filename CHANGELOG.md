@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-19
+
+### Fixed
+
+- Require Pklr 5.2.0 so imported class constraints retain their defining
+  constants and type aliases even when the caller reuses those names. Keep
+  invalid-value rejection and Rust 1.88 compatibility.
+
 ## [0.2.0] - 2026-10-17
 
 ### Changed
