@@ -61,7 +61,8 @@ pklx to-pkl '{"host": "example.com", "port": 443}'
 
 ## Migrating to 0.2
 
-Pklx 0.2 re-exports Pklr 5.1 and keeps Rust 1.88 as its minimum version.
+Pklx 0.2.1 requires and re-exports Pklr 5.2 or newer within the 5.x series,
+and keeps Rust 1.88 as its minimum version.
 The async evaluation functions are unchanged; synchronous Pklr work runs on
 Tokio's blocking pool. Local imports, HTTP rewrites, package ZIPs, class
 metadata, data-only output, and typed deserialization remain supported.
