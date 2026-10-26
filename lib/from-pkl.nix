@@ -47,7 +47,26 @@ let
     let
       parts = builtins.filter builtins.isString (builtins.split " " str);
     in builtins.foldl' (acc: term: acc + (parseTerm multipliers term)) 0 parts;
+
+  # Drop `__pkl_class` markers and null-valued attributes, recursively.
+  # Pkl renders unset optional properties as nulls, while Nix consumers treat
+  # an absent attribute as unset (`x.field or default`).
+  normalize = value:
+    if builtins.isAttrs value
+    then
+      builtins.mapAttrs (_: normalize) (builtins.removeAttrs value (
+        ["__pkl_class"] ++ builtins.filter (name: value.${name} == null) (builtins.attrNames value)
+      ))
+    else if builtins.isList value
+    then map normalize value
+    else value;
 in {
+  inherit normalize;
+
+  # Import a checked-in Pkl-rendered Nix sidecar (e.g. `pklx eval -o`) with
+  # `normalize` applied.
+  importSidecar = path: normalize (import path);
+
   # Parse a Pkl Duration string (e.g. "5days 3hours") into seconds.
   # Supported units: ns, us, ms, s, min, h, d
   parseDuration = durationStr:

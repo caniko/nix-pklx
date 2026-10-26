@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `fromPkl.importSidecar` and `fromPkl.normalize` import Pkl-rendered Nix
+  sidecars without `__pkl_class` markers or null-valued attributes.
+
 ## [0.2.1] - 2026-10-19
 
 ### Fixed
