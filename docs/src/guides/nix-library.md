@@ -44,5 +44,13 @@ in {
   # Parse duration strings: "5days 3hours" → seconds
   # Parse data size strings: "10mb" → bytes
   result = pklxLib.fromPkl.parseDuration "5days 3hours";
+
+  # Import a checked-in Pkl-rendered sidecar without `__pkl_class` markers
+  # or null-valued attributes, so `x.field or default` sees unset as absent.
+  # `fromPkl.normalize` applies the same cleanup to an already-imported value.
+  sync = pklxLib.fromPkl.importSidecar ./generated/sync.nix;
 }
 ```
+
+`fromPkl` needs no package set, so pure-data code without a system can import
+it directly: `import "${nix-pklx}/lib/from-pkl.nix" { inherit lib; }`.

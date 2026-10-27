@@ -128,6 +128,17 @@
             touch "$out"
           '';
 
+        from-pkl-import-sidecar = let
+          actual = self.lib.${system}.fromPkl.importSidecar ./tests/fixtures/sidecar.nix;
+          expected = {
+            name = "atlas";
+            nested.keep = 1;
+            items = [{id = "a";} null];
+          };
+        in
+          assert actual == expected;
+            pkgs.runCommand "from-pkl-import-sidecar" {} "touch $out";
+
         pklx-tests = craneLib.cargoTest (
           commonArgs
           // {
