@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `fromPkl.importSidecar` and `fromPkl.normalize` import Pkl-rendered Nix
   sidecars without `__pkl_class` markers or null-valued attributes.
 
+### Changed
+
+- Build the `pklx` binary unconditionally instead of behind
+  `required-features = ["cli"]`, so release archives always contain it. The
+  `cli` feature stays as a no-op alias for existing
+  `--features cli`/`--no-default-features` consumers.
+
 ## [0.2.1] - 2026-10-19
 
 ### Fixed

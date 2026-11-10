@@ -2,7 +2,6 @@ pub mod deserializer;
 pub mod eval;
 pub mod nix_serializer;
 
-#[cfg(feature = "cli")]
 pub mod cli;
 
 pub use deserializer::{
