@@ -232,6 +232,11 @@
         // {
           msrv = pkgs.mkShell {
             packages = [pkgs.rust-bin.stable."1.88.0".default pkgs.cmake pkgs.pkg-config];
+            # In CI the default shell writes harbor-rs's nightly Cargo config
+            # (-Z flags) into the shared CARGO_HOME; stable 1.88 must not read it.
+            shellHook = ''
+              export CARGO_HOME="''${TMPDIR:-/tmp}/cargo-home-msrv"
+            '';
           };
           docs = harbor-rs.lib.mkDocsShell {
             inherit pkgs cross cargoConfig;
