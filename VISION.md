@@ -54,6 +54,6 @@ Rust 1.88.
 ## Place in the fleet
 
 `canix/flake.nix` pins `nix-pklx` and several canix inputs follow it, including
-the CLI flake. canix's Pkl ownership design documents Pkl as the authored
-format, and `home/modules/development/canix_cli.nix` wires the toolchain around
-it.
+`secret-manager`, `sc`, and `infernix`. canix's Pkl ownership design documents
+Pkl as the authored format, and `home/modules/development/canix_cli.nix` wires
+the toolchain around it.
