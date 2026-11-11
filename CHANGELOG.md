@@ -7,10 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-11
+
 ### Added
 
 - `fromPkl.importSidecar` and `fromPkl.normalize` import Pkl-rendered Nix
   sidecars without `__pkl_class` markers or null-valued attributes.
+- Release checksums (`SHA256SUMS.txt`) are now minisign-signed, and release
+  archives carry Sigstore bundles and SLSA attestations. Verify a download
+  with `minisign -V -m SHA256SUMS.txt -x SHA256SUMS.txt.minisig -p keys/minisign.pub`
+  before checking it against `sha256sum -c`.
 
 ### Changed
 
