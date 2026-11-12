@@ -9,7 +9,7 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     harbor-rs = {
-      url = "git+https://github.com/caniko/harbor-rs.git?ref=trunk&rev=7f03d58b0e6e748b4817417ff21958e074ec6faf";
+      url = "git+https://github.com/caniko/harbor-rs.git?ref=trunk&rev=82206bdc5be73b81992917ce765073db0f446f01";
       inputs.nixpkgs.follows = "nixpkgs";
       inputs.crane.follows = "crane";
       inputs.rust-overlay.follows = "rust-overlay";
@@ -98,7 +98,7 @@
 
         docs = pkgs.stdenv.mkDerivation {
           pname = "nix-pklx-docs";
-          version = "0.2.1";
+          inherit version;
           src = ./docs;
           nativeBuildInputs = [pkgs.mdbook];
           buildPhase = ''
@@ -112,7 +112,7 @@
         {
           default = craneLib.buildPackage {
             pname = "pklx";
-            version = "0.2.1";
+            inherit version;
             src = craneLib.cleanCargoSource ./.;
             strictDeps = true;
             doCheck = true;

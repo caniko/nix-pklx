@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.3] - 2026-11-12
+
+### Fixed
+
+- Release archives: the GitHub release now builds and publishes the signed
+  cargo-binstall archives (the previous tag's release workflow failed).
+- Cross-target archives are built with `doCheck = false`, so the aarch64 musl
+  test binary is never run on the x86_64 build host. This needs the `harbor-rs`
+  input at `82206bd` or newer.
+
 ## [0.2.2] - 2026-11-11
 
 ### Added

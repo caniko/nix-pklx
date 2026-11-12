@@ -562,17 +562,17 @@
         ]
       },
       "locked": {
-        "lastModified": 1794304475,
-        "narHash": "sha256-Hb8H+UGcTHmUfX2+REmgvIaPYIRhWm3rcwa2tuZlcFg=",
+        "lastModified": 1794397353,
+        "narHash": "sha256-64CcPVUu9eIdDQQkIdpa64RWXWc3Z5aGCFUir/VGSQI=",
         "ref": "trunk",
-        "rev": "7f03d58b0e6e748b4817417ff21958e074ec6faf",
-        "revCount": 321,
+        "rev": "82206bdc5be73b81992917ce765073db0f446f01",
+        "revCount": 326,
         "type": "git",
         "url": "https://github.com/caniko/harbor-rs.git"
       },
       "original": {
         "ref": "trunk",
-        "rev": "7f03d58b0e6e748b4817417ff21958e074ec6faf",
+        "rev": "82206bdc5be73b81992917ce765073db0f446f01",
         "type": "git",
         "url": "https://github.com/caniko/harbor-rs.git"
       }
